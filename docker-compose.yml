@@ -1,0 +1,10 @@
+version: '3'
+services:
+  app:
+    image: node:carbon-alpine
+    command: node dist/index.js
+    ports:
+      - 3000:3000
+    volumes:
+      - .:/home/app
+    working_dir: /home/app
