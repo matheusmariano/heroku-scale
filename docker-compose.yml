@@ -8,3 +8,11 @@ services:
     volumes:
       - .:/home/app
     working_dir: /home/app
+  worker:
+    image: node:carbon-alpine
+    command: node dist/jobs/fib.js
+    volumes:
+      - .:/home/app
+    working_dir: /home/app
+  rabbitmq:
+    image: rabbitmq:3.7-alpine

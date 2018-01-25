@@ -6,8 +6,12 @@
   "author": "Matheus Mariano <vmatheus.mariano@gmail.com>",
   "license": "MIT",
   "dependencies": {
+    "amqplib": "^0.5.2",
+    "body-parser": "^1.18.2",
     "dotenv": "^4.0.0",
-    "express": "^4.16.2"
+    "express": "^4.16.2",
+    "heroku-client": "^3.0.6",
+    "uuid": "^3.2.1"
   },
   "devDependencies": {
     "@types/jest": "^21.1.1",
