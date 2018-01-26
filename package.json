@@ -39,6 +39,7 @@
   },
   "scripts": {
     "build": "npm run tsc",
+    "heroku-postbuild": "npm run build",
     "lint": "node_modules/.bin/tslint -c tslint.json -e \"node_modules/**/*.ts\" \"**/*.ts\"",
     "precommit": "concurrently \"npm run lint\" \"npm run test\"",
     "prepush": "npm run precommit",
