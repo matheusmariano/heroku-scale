@@ -1,42 +1,57 @@
 import * as uuid from 'uuid/v1';
 import { Buffer } from 'buffer';
 import amqp from '../../services/rabbitmq';
-import { createDyno } from '../../services/heroku';
+import { createFibDyno, stopDyno } from '../../services/heroku';
 
 export default {
   process: (request, response) => {
-    createDyno().then(async (dyno) => {
-      const connection = await amqp.connect();
+    createFibDyno().then(async (dyno) => {
+      try {
+        const connection = await amqp.connect();
 
-      const channel = await connection.createChannel();
+        const channel = await connection.createChannel();
 
-      const queue = await channel.assertQueue('', {
-        exclusive: true,
-      });
+        const queue = await channel.assertQueue('', {
+          exclusive: true,
+        });
 
-      const correlationId = uuid();
-      const number = request.body.number;
-      const queueName = queue.queue;
+        const correlationId = uuid();
+        const number = request.body.number;
+        const serverQueue = 'server_queue';
+        const queueName = queue.queue;
 
-      console.log(` [x] Requesting fib(${number}).`);
+        console.log(` [x] Requesting fib(${number}).`);
 
-      channel.consume(queueName, (message) => {
-        if (message.properties.correlationId === correlationId) {
-          const result = message.content.toString();
+        channel.consume(queueName, (message) => {
+          if (message.properties.correlationId === correlationId) {
+            const result = message.content.toString();
 
-          connection.close();
+            connection.close();
 
-          response.json({
-            data: {
-              result,
-            },
-          });
-        }
-      });
+            stopDyno(dyno.id);
 
-      channel.sendToQueue('server_queue', new Buffer(number.toString()), {
-        correlationId,
-        replyTo: queueName,
+            response.json({
+              data: {
+                result,
+              },
+            });
+          }
+        });
+
+        channel.sendToQueue(serverQueue, new Buffer(number.toString()), {
+          correlationId,
+          replyTo: queueName,
+        });
+      } catch ($e) {
+        stopDyno(dyno.id);
+
+        response.status(500).json({
+          error: 'Could not connect to queue.',
+        });
+      }
+    }).catch((exception) => {
+      response.status(500).json({
+        error: 'Could not create dyno.',
       });
     });
   },
